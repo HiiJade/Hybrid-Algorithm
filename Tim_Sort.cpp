@@ -84,7 +84,7 @@ void findOptimalK() {
     double bestTime = 1e9; // Initialize with a large time
 
     cout << "Testing different values of k...\n";
-    cout << "k\tMerge Sort (ms)\tTim Sort (ms)\n";
+    cout << "k\tMerge Sort (ms)\tInsertion Sort (ms)\tTim Sort (ms)\n";
     
     for (int k = 2; k <= 64; k *= 2) {
         // Run Merge Sort
@@ -94,14 +94,27 @@ void findOptimalK() {
         auto end1 = high_resolution_clock::now();
         double mergeTime = duration_cast<microseconds>(end1 - start1).count() / 1000.0; // Convert to ms
 
-        // Run Tim Sort
-        vector<int> arr2 = original;
-        auto start2 = high_resolution_clock::now();
-        timSort(arr2, k);
-        auto end2 = high_resolution_clock::now();
-        double timSortTime = duration_cast<microseconds>(end2 - start2).count() / 1000.0; // Convert to ms
+        // Run Insertion Sort (only for very small k, else too slow)
+        double insertionTime = -1; // Default for large k
+        if (k <= 16) { // Avoid excessive time for large n
+            vector<int> arr2 = original;
+            auto start2 = high_resolution_clock::now();
+            insertionSort(arr2, 0, arr2.size() - 1);
+            auto end2 = high_resolution_clock::now();
+            insertionTime = duration_cast<microseconds>(end2 - start2).count() / 1000.0;
+        }
 
-        cout << k << "\t" << mergeTime << "\t\t" << timSortTime << endl;
+        // Run Tim Sort
+        vector<int> arr3 = original;
+        auto start3 = high_resolution_clock::now();
+        timSort(arr3, k);
+        auto end3 = high_resolution_clock::now();
+        double timSortTime = duration_cast<microseconds>(end3 - start3).count() / 1000.0; // Convert to ms
+
+        cout << k << "\t" << mergeTime << "\t\t";
+        if (insertionTime > 0) cout << insertionTime << "\t\t";
+        else cout << "N/A\t\t";
+        cout << timSortTime << endl;
 
         if (timSortTime < bestTime) {
             bestTime = timSortTime;
